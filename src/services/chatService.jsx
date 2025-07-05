@@ -1,6 +1,6 @@
 import axios from "axios";
 
-const API_URL = "http://localhost:5000/api/location/search";
+const API_URL = `${process.env.REACT_APP_API_URL}/location/search`;
 
 export const sendMessageToServer = async (userMessage) => {
   try {
