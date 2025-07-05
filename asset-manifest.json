@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/HCM_AI_2025_FE/static/css/main.5e751d2b.css",
+    "main.js": "/HCM_AI_2025_FE/static/js/main.ddff5559.js",
+    "index.html": "/HCM_AI_2025_FE/index.html",
+    "main.5e751d2b.css.map": "/HCM_AI_2025_FE/static/css/main.5e751d2b.css.map",
+    "main.ddff5559.js.map": "/HCM_AI_2025_FE/static/js/main.ddff5559.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.5e751d2b.css",
+    "static/js/main.ddff5559.js"
+  ]
+}
