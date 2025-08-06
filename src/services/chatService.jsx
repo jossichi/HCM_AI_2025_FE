@@ -1,11 +1,14 @@
 import axios from "axios";
 
-const API_URL = `${process.env.REACT_APP_API_URL}/location/search`;
+const BASE_URL = `${process.env.REACT_APP_API_URL}/location`;
 
+// =============== TEXT QUERY ===============
 export const sendMessageToServer = async (userMessage) => {
   try {
-    const response = await axios.post(API_URL, {
+    const response = await axios.post(`${BASE_URL}/search`, {
       user_query: userMessage,
+      input_type: "video_name",
+      input_reference: "text_input",
     });
     return response.data;
   } catch (error) {
@@ -13,27 +16,45 @@ export const sendMessageToServer = async (userMessage) => {
     throw error;
   }
 };
+
 export const chatService = {
   sendMessage: async (userMessage) => {
     const response = await sendMessageToServer(userMessage);
     return response;
   },
 };
-export const getLocationSuggestions = async (query) => {
-  try {
-    const response = await axios.get(`${API_URL}?query=${query}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching location suggestions:", error);
-    throw error;
-  }
+
+// =============== IMAGE SEARCH ===============
+export const searchByImage = async (imageFile) => {
+  const formData = new FormData();
+  formData.append("file", imageFile);
+  formData.append("query", ""); // optional
+
+  const res = await axios.post(`${BASE_URL}/search/image`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
 };
-export const getLocationDetails = async (locationId) => {
-  try {
-    const response = await axios.get(`${API_URL}/${locationId}`);
-    return response.data;
-  } catch (error) {
-    console.error("Error fetching location details:", error);
-    throw error;
-  }
+
+// =============== CLIP SEARCH ===============
+export const searchByClip = async (clipFile) => {
+  const formData = new FormData();
+  formData.append("file", clipFile);
+
+  const res = await axios.post(`${BASE_URL}/search/clip`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
+};
+
+// =============== VIDEO HIGHLIGHT ANALYSIS ===============
+export const analyzeVideoHighlights = async (videoFile, videoName = "") => {
+  const formData = new FormData();
+  formData.append("file", videoFile);
+  formData.append("video_name", videoName); // optional
+
+  const res = await axios.post(`${BASE_URL}/analyze/highlight`, formData, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return res.data;
 };
