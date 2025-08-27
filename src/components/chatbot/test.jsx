@@ -13,7 +13,6 @@ const ChatInterface = () => {
   const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
-  // eslint-disable-next-line no-unused-vars
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
   const chatEndRef = useRef(null);
@@ -40,32 +39,20 @@ const ChatInterface = () => {
     setLoading(true);
 
     try {
-      // Gửi file nếu có
       if (file) {
         const fileType = file.type;
-        const url = URL.createObjectURL(file);
-        const type = fileType.startsWith("image/") ? "image" : "video";
-
-        // Gửi media như một message
-        await sendMessage({ type, url });
-
-        // Gọi API tương ứng
         let data = {};
-        if (type === "image") {
+        if (fileType.startsWith("image/")) {
           data = await searchByImage(file);
-        } else {
+        } else if (fileType.startsWith("video/")) {
           const isShort = file.size < 10 * 1024 * 1024;
           data = isShort
             ? await searchByClip(file)
             : await analyzeVideoHighlights(file);
         }
-
-        if (data?.results?.length > 0) {
-          await sendMessage({ type: "media-results", results: data.results });
-        }
+        setResults(data.results || []);
       }
 
-      // Gửi text nếu có
       if (input.trim()) {
         await sendMessage(input.trim());
         setInput("");
@@ -79,17 +66,6 @@ const ChatInterface = () => {
     setLoading(false);
   };
 
-  // format OCR texts để tránh render object trực tiếp
-  const formatOcrTexts = (ocrTexts) => {
-    if (!Array.isArray(ocrTexts) || ocrTexts.length === 0)
-      return "(không có OCR)";
-    return ocrTexts
-      .map(
-        (t) => `${t.text || ""} (conf: ${t.confidence?.toFixed(2) ?? "N/A"})`
-      )
-      .join("; ");
-  };
-
   return (
     <div className="chat-container">
       <header className="chat-header">🤖 AI Trợ Lý – Video Search</header>
@@ -100,36 +76,7 @@ const ChatInterface = () => {
             <div
               key={idx}
               className={`message ${msg.sender === "user" ? "user" : "bot"}`}>
-              {msg.type === "image" ? (
-                <img src={msg.url} alt="User upload" className="chat-media" />
-              ) : msg.type === "video" ? (
-                <video src={msg.url} controls className="chat-media" />
-              ) : msg.type === "media-results" ? (
-                <div className="bot-results">
-                  <div className="result-grid">
-                    {msg.results.map((res, i) => (
-                      <div key={i} className="result-card">
-                        <div className="title">🎬 {res.video_name}</div>
-                        <div>
-                          ⏱️ <strong>Thời gian:</strong> {res.timestamp}s
-                        </div>
-                        <div>
-                          📊 <strong>Score:</strong> {res.score?.toFixed(3)}
-                        </div>
-                        {res.frame_name && (
-                          <div>🖼️ Frame: {res.frame_name}</div>
-                        )}
-                        {res.audio_text && (
-                          <div className="text-italic">
-                            🗣️ "{res.audio_text}"
-                          </div>
-                        )}
-                        <div>📄 OCR: {formatOcrTexts(res.ocr_texts)}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : msg.sender === "bot" && Array.isArray(msg.text) ? (
+              {msg.sender === "bot" && Array.isArray(msg.text) ? (
                 msg.text.map((r, i) =>
                   typeof r === "string" ? (
                     <div key={i}>{r}</div>
@@ -141,8 +88,7 @@ const ChatInterface = () => {
                 <div>{msg.text}</div>
               )}
             </div>
-          ))}
-
+          ))}{" "}
           {results.length > 0 && (
             <div className="message bot">
               <div className="bot-results">
@@ -160,14 +106,13 @@ const ChatInterface = () => {
                       {res.audio_text && (
                         <div className="text-italic">🗣️ "{res.audio_text}"</div>
                       )}
-                      <div>📄 OCR: {formatOcrTexts(res.ocr_texts)}</div>
+                      {res.ocr_texts && <div>📄 OCR: {res.ocr_texts}</div>}
                     </div>
                   ))}
                 </div>
               </div>
             </div>
           )}
-
           <div ref={chatEndRef} />
         </div>
 
