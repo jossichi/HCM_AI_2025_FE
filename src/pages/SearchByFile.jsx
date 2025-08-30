@@ -5,16 +5,18 @@ import {
   analyzeVideoHighlights,
 } from "../services/chatService";
 import { useState } from "react";
+import ChatCard from "../components/chat/ChatCard";
 
 const SearchByFile = () => {
   const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [query, setQuery] = useState("");
 
   const handleSearch = async (file, method) => {
     setLoading(true);
     try {
       let data = {};
-      if (method === "image") data = await searchByImage(file);
+      if (method === "image") data = await searchByImage(file, query);
       if (method === "clip") data = await searchByClip(file);
       if (method === "highlight") data = await analyzeVideoHighlights(file);
       setResults(data.results || []);
@@ -29,6 +31,17 @@ const SearchByFile = () => {
       <h2 className="text-3xl font-bold text-center">
         🔍 Tìm kiếm nội dung video bằng tệp tin
       </h2>
+
+      {/* Input query */}
+      <div className="text-center">
+        <input
+          type="text"
+          placeholder="Nhập từ khóa (OCR / audio / object)"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="border rounded px-3 py-2 w-full md:w-1/2"
+        />
+      </div>
 
       <div className="grid md:grid-cols-3 gap-6">
         <FileUploader
@@ -54,37 +67,11 @@ const SearchByFile = () => {
         </div>
       )}
 
+      {/* === Hiển thị kết quả bằng ChatCard === */}
       {results.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="space-y-4">
           {results.map((res, idx) => (
-            <div
-              key={idx}
-              className="bg-white shadow rounded-lg p-4 border border-gray-100">
-              <div className="font-semibold text-lg text-gray-700 mb-1">
-                🎬 {res.video_name}
-              </div>
-              <div className="text-sm text-gray-600 mb-1">
-                ⏱️ <strong>Thời gian:</strong> {res.timestamp}s
-              </div>
-              <div className="text-sm text-gray-600 mb-1">
-                📊 <strong>Score:</strong> {res.score?.toFixed(3)}
-              </div>
-              {res.frame_name && (
-                <div className="text-sm text-gray-500 truncate">
-                  🖼️ Frame: {res.frame_name}
-                </div>
-              )}
-              {res.audio_text && (
-                <p className="mt-2 text-sm italic text-gray-500">
-                  🗣️ "{res.audio_text}"
-                </p>
-              )}
-              {res.ocr_texts && (
-                <p className="mt-1 text-sm text-gray-500">
-                  📄 OCR: {res.ocr_texts}
-                </p>
-              )}
-            </div>
+            <ChatCard key={idx} result={res} />
           ))}
         </div>
       )}

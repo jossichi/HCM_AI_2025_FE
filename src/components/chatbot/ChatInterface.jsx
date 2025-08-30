@@ -13,43 +13,78 @@ const ChatInterface = () => {
   const [input, setInput] = useState("");
   const [file, setFile] = useState(null);
   const [previewUrl, setPreviewUrl] = useState("");
-  // eslint-disable-next-line no-unused-vars
-  const [results, setResults] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [isDragging, setIsDragging] = useState(false);
   const chatEndRef = useRef(null);
 
+  // Lắng nghe drag & drop toàn màn hình
+  useEffect(() => {
+    const handleDragOver = (e) => {
+      e.preventDefault();
+    };
+
+    const handleDragEnter = (e) => {
+      e.preventDefault();
+      setIsDragging(true);
+    };
+
+    const handleDragLeave = (e) => {
+      e.preventDefault();
+      setIsDragging(false);
+    };
+
+    const handleDrop = (e) => {
+      e.preventDefault();
+      setIsDragging(false);
+      const droppedFile = e.dataTransfer.files[0];
+      if (droppedFile) {
+        setFile(droppedFile);
+      }
+    };
+
+    window.addEventListener("dragover", handleDragOver);
+    window.addEventListener("dragenter", handleDragEnter);
+    window.addEventListener("dragleave", handleDragLeave);
+    window.addEventListener("drop", handleDrop);
+
+    return () => {
+      window.removeEventListener("dragover", handleDragOver);
+      window.removeEventListener("dragenter", handleDragEnter);
+      window.removeEventListener("dragleave", handleDragLeave);
+      window.removeEventListener("drop", handleDrop);
+    };
+  }, []);
+
+  // Auto scroll xuống cuối khi có tin nhắn mới
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  // Tạo preview file
   useEffect(() => {
     if (!file) {
       setPreviewUrl("");
       return;
     }
-
     const url = URL.createObjectURL(file);
     setPreviewUrl(url);
-
     return () => URL.revokeObjectURL(url);
   }, [file]);
 
+  // Submit chat
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!input.trim() && !file) return;
     setLoading(true);
 
     try {
-      // Gửi file nếu có
       if (file) {
         const fileType = file.type;
         const url = URL.createObjectURL(file);
         const type = fileType.startsWith("image/") ? "image" : "video";
 
-        // Gửi media như một message
         await sendMessage({ type, url });
 
-        // Gọi API tương ứng
         let data = {};
         if (type === "image") {
           data = await searchByImage(file);
@@ -65,7 +100,6 @@ const ChatInterface = () => {
         }
       }
 
-      // Gửi text nếu có
       if (input.trim()) {
         await sendMessage(input.trim());
         setInput("");
@@ -79,19 +113,8 @@ const ChatInterface = () => {
     setLoading(false);
   };
 
-  // format OCR texts để tránh render object trực tiếp
-  const formatOcrTexts = (ocrTexts) => {
-    if (!Array.isArray(ocrTexts) || ocrTexts.length === 0)
-      return "(không có OCR)";
-    return ocrTexts
-      .map(
-        (t) => `${t.text || ""} (conf: ${t.confidence?.toFixed(2) ?? "N/A"})`
-      )
-      .join("; ");
-  };
-
   return (
-    <div className="chat-container">
+    <div className={`chat-container ${isDragging ? "drag-active" : ""}`}>
       <header className="chat-header">🤖 AI Trợ Lý – Video Search</header>
 
       <section className="chat-body">
@@ -106,35 +129,22 @@ const ChatInterface = () => {
                 <video src={msg.url} controls className="chat-media" />
               ) : msg.type === "media-results" ? (
                 <div className="bot-results">
-                  <div className="result-grid">
-                    {msg.results.map((res, i) => (
-                      <div key={i} className="result-card">
-                        <div className="title">🎬 {res.video_name}</div>
-                        <div>
-                          ⏱️ <strong>Thời gian:</strong> {res.timestamp}s
-                        </div>
-                        <div>
-                          📊 <strong>Score:</strong> {res.score?.toFixed(3)}
-                        </div>
-                        {res.frame_name && (
-                          <div>🖼️ Frame: {res.frame_name}</div>
-                        )}
-                        {res.audio_text && (
-                          <div className="text-italic">
-                            🗣️ "{res.audio_text}"
-                          </div>
-                        )}
-                        <div>📄 OCR: {formatOcrTexts(res.ocr_texts)}</div>
-                      </div>
-                    ))}
-                  </div>
+                  {msg.results.map((res, i) => (
+                    <div key={i}>
+                      {res.frame_name && <div>🖼️ Frame: {res.frame_name}</div>}
+                      <ChatCard result={res} />
+                    </div>
+                  ))}
                 </div>
               ) : msg.sender === "bot" && Array.isArray(msg.text) ? (
                 msg.text.map((r, i) =>
                   typeof r === "string" ? (
                     <div key={i}>{r}</div>
                   ) : (
-                    <ChatCard key={i} result={r} />
+                    <div key={i}>
+                      {r.frame_name && <div>🖼️ Frame: {r.frame_name}</div>}
+                      <ChatCard result={r} />
+                    </div>
                   )
                 )
               ) : (
@@ -142,31 +152,6 @@ const ChatInterface = () => {
               )}
             </div>
           ))}
-
-          {results.length > 0 && (
-            <div className="message bot">
-              <div className="bot-results">
-                <div className="result-grid">
-                  {results.map((res, idx) => (
-                    <div key={idx} className="result-card">
-                      <div className="title">🎬 {res.video_name}</div>
-                      <div>
-                        ⏱️ <strong>Thời gian:</strong> {res.timestamp}s
-                      </div>
-                      <div>
-                        📊 <strong>Score:</strong> {res.score?.toFixed(3)}
-                      </div>
-                      {res.frame_name && <div>🖼️ Frame: {res.frame_name}</div>}
-                      {res.audio_text && (
-                        <div className="text-italic">🗣️ "{res.audio_text}"</div>
-                      )}
-                      <div>📄 OCR: {formatOcrTexts(res.ocr_texts)}</div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
 
           <div ref={chatEndRef} />
         </div>
@@ -208,6 +193,12 @@ const ChatInterface = () => {
           </button>
         </form>
       </section>
+
+      {isDragging && (
+        <div className="drag-overlay">
+          <div className="drag-text">📂 Thả file vào bất kỳ đâu để tải lên</div>
+        </div>
+      )}
     </div>
   );
 };

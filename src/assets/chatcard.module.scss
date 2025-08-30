@@ -1,65 +1,250 @@
-.card {
-  background-color: #ffffff;
-  color: #1f2937;
-  padding: 1rem;
-  border-radius: 1rem;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  margin-bottom: 1rem;
-  font-size: 0.95rem;
-  line-height: 1.5;
+/* --- Màu sắc và biến chính --- */
+:root {
+  --card-bg: #ffffff;
+  --text-primary: #2c3e50;
+  --text-secondary: #576574;
+  --accent-primary: #3498db;
+  --accent-secondary: #2980b9;
+  --border-color: #e0e0e0;
+  --shadow-color: rgba(44, 62, 80, 0.1);
+  --avatar-bg: linear-gradient(135deg, #f39c12 0%, #f1c40f 100%);
+}
 
-  &.dark {
-    background-color: #1f2937;
-    color: #f9fafb;
+/* --- Thẻ Chat chính --- */
+.chatCard {
+  display: flex;
+  align-items: flex-start;
+  margin: 1.5rem 0;
+  max-width: 700px; /* Tăng chiều rộng để vừa layout 2 cột */
+}
+
+.avatar {
+  background: var(--avatar-bg);
+  color: white;
+  border-radius: 50%;
+  width: 45px;
+  height: 45px;
+  font-size: 1.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 4px 8px var(--shadow-color);
+}
+
+/* --- Container 2 cột --- */
+.cardContainer {
+  display: flex;
+  background: var(--card-bg);
+  border-radius: 16px;
+  box-shadow: 0 6px 20px var(--shadow-color);
+  overflow: hidden;
+  flex: 1;
+  border: 1px solid var(--border-color);
+}
+
+/* --- Cột Trái: Hình ảnh --- */
+.visualColumn {
+  flex: 0 0 40%; /* Cột hình ảnh chiếm 40% chiều rộng */
+  position: relative;
+
+  .frameImage {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.3s ease, filter 0.3s ease;
+
+    &:hover {
+      transform: scale(1.05);
+      filter: brightness(1.1);
+    }
   }
+}
 
-  .section {
-    margin-bottom: 0.5rem;
+/* --- Cột Phải: Thông tin --- */
+.infoColumn {
+  flex: 1;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  color: var(--text-primary);
+}
+
+/* --- Phần tóm tắt --- */
+.summarySection {
+  margin-bottom: 12px;
+  padding-bottom: 12px;
+  border-bottom: 1px solid var(--border-color);
+
+  .summaryItem {
+    margin: 4px 0;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
 
     strong {
-      display: inline-block;
-      min-width: 110px;
-      font-weight: 600;
-      color: #4b5563;
-
-      .dark & {
-        color: #d1d5db;
-      }
+      color: var(--text-primary);
     }
+  }
+}
 
-    span {
-      display: inline-block;
+/* --- Hệ thống Tabs --- */
+.tabs {
+  display: flex;
+  margin-bottom: 12px;
+  border-radius: 8px;
+  background: #f4f6f8;
+  padding: 4px;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  transition: all 0.25s ease;
+
+  &:hover {
+    background: #e9ecef;
+  }
+
+  &.active {
+    background: var(--accent-primary);
+    color: white;
+    box-shadow: 0 2px 5px rgba(52, 152, 219, 0.3);
+  }
+}
+
+.tabContent {
+  flex: 1; // Giúp nội dung tab chiếm hết không gian còn lại
+  min-height: 120px; /* Đảm bảo chiều cao tối thiểu cho nội dung */
+}
+
+/* --- Trình bày dữ liệu trong Tab --- */
+.noData,
+.audioText {
+  color: var(--text-secondary);
+  font-style: italic;
+  font-size: 0.9rem;
+  padding: 1rem 0;
+}
+
+.dataList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+
+  li {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 4px;
+    border-bottom: 1px solid var(--border-color);
+    font-size: 0.9rem;
+
+    &:last-child {
+      border-bottom: none;
     }
   }
 
-  .objects {
-    margin-top: 0.75rem;
+  .dataText {
+    font-weight: 500;
+    color: var(--accent-secondary);
+    font-style: italic;
+  }
 
-    ul {
-      list-style: disc;
-      padding-left: 1.25rem;
-      margin: 0.25rem 0;
+  .dataLabel {
+    font-weight: 600;
+  }
 
-      li {
-        margin-bottom: 0.35rem;
-        color: #374151;
+  .dataConfidence {
+    font-size: 0.85rem;
+    color: #7f8c8d;
+    white-space: nowrap;
+    margin-left: 10px;
+  }
+}
 
-        .dark & {
-          color: #e5e7eb;
-        }
+/* Thanh tiến trình cho độ tin cậy của Object */
+.confidenceBar {
+  flex-grow: 1;
+  height: 8px;
+  background-color: #e0e0e0;
+  border-radius: 4px;
+  margin: 0 10px;
+  overflow: hidden;
 
-        code {
-          font-family: monospace;
-          background: #f3f4f6;
-          padding: 0.1rem 0.3rem;
-          border-radius: 0.25rem;
-          font-size: 0.9em;
+  .confidenceFill {
+    height: 100%;
+    background: linear-gradient(90deg, #2ecc71, #27ae60);
+    border-radius: 4px;
+  }
+}
+/* --- Thêm vào cuối file chatcard.module.scss --- */
 
-          .dark & {
-            background: #374151;
-          }
-        }
-      }
+/* NEW: Wrapper cho content chính để quản lý layout dọc */
+.mainContent {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+/* MODIFIED: Chỉnh lại một chút cho cột ảnh */
+.visualColumn {
+  .frameImage {
+    cursor: pointer; // Thêm con trỏ để báo hiệu có thể nhấn
+    &:hover {
+      // Giữ nguyên hiệu ứng hover cũ
+      transform: scale(1.05);
+      filter: brightness(1.1);
     }
   }
+}
+
+/* --- Nút xem video --- */
+.watchVideoButton {
+  display: inline-block;
+  margin-top: 12px;
+  padding: 8px 16px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--accent-primary);
+  background-color: rgba(52, 152, 219, 0.1);
+  border: 1px solid rgba(52, 152, 219, 0.2);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.25s ease;
+  width: 100%; // Cho nút chiếm hết chiều rộng cho đẹp
+
+  &:hover {
+    background-color: rgba(52, 152, 219, 0.2);
+    border-color: rgba(52, 152, 219, 0.4);
+    color: var(--accent-secondary);
+  }
+}
+
+/* --- Khung Video Player --- */
+.videoPlayerSection {
+  width: 100%;
+  overflow: hidden; // Quan trọng để hiệu ứng height hoạt động mượt
+  background: #f0f2f5; // Màu nền nhẹ cho khu vực video
+  // Bo tròn góc dưới cho khớp với thẻ
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
+}
+
+.videoPlayer {
+  width: 100%;
+  display: block; // Loại bỏ khoảng trống thừa bên dưới video
+  max-height: 400px;
+  background-color: #000;
+  // Bo tròn góc dưới cho khớp với thẻ cha
+  border-bottom-left-radius: 16px;
+  border-bottom-right-radius: 16px;
 }

@@ -1,6 +1,6 @@
 import axios from "axios";
-
-const BASE_URL = `${process.env.REACT_APP_API_URL}/location`;
+import { API_URL } from "../constants";
+const BASE_URL = `${API_URL}/location`;
 
 // =============== TEXT QUERY ===============
 export const sendMessageToServer = async (userMessage) => {
